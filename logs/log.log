@@ -1,0 +1,8 @@
+2019-01-18 09:57:02,768: DEBUG: Starting flask app.
+2019-01-18 09:58:29,029: INFO: POST Request received.
+2019-01-18 09:58:29,037: ERROR: Audio data not received
+2019-01-18 09:58:35,666: INFO: POST Request received.
+2019-01-18 09:58:35,674: INFO: Analyzing temp file: fa2ae5c2-8034-4e07-8465-07b9dcfd4f8a
+2019-01-18 09:58:37,390: INFO: voice_analyzer completed task: Male Adult Other
+2019-01-18 09:58:37,480: INFO: Analysis completed
+2019-01-18 09:58:37,481: DEBUG: Temp file removed.  Was fa2ae5c2-8034-4e07-8465-07b9dcfd4f8a
