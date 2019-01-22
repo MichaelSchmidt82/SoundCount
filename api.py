@@ -58,6 +58,8 @@ class SoundCount(Resource):
 
         # Tag the words
         payload['meta']['text'] = utils.pos_tagger([words['meta']['text']])
+        payload['meta']['text'] = payload['meta']['text'][0]
+         
         payload['meta']['gender'] = analysis['gender']
         payload['meta']['age'] = analysis['age']
         payload['meta']['dialect'] = analysis['dialect']
