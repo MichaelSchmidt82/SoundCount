@@ -4,21 +4,27 @@ import speech_recognition as sr
 from environment import creds
 
 # Sphinx Recognizer, Free to use but only decent at recognizing
-def sphinx(r, audio):
+def sphinx(rec, audio):
+    """
+    Use sphinx to recognize the natural language.
+    :rec:       speech_recognition.Recognizer()     The speech recognition engine.
+    :audio:     speech_recognition.AudioData()      The audio from the end user.
+    :returns:   dict()                              meta-information: text transcipt, POS count
+    """
 
     payload = {'count': 'invalid'}
-    meta = {}
+    meta = dict({})
 
     try:
-        phrase = r.recognize_sphinx(audio)
+        phrase = rec.recognize_sphinx(audio)
         payload['count'] = utils.word_count(phrase)
         meta['text'] = phrase.split()
     except sr.UnknownValueError:
         payload['error'] = "Sphinx could not understand audio"
         logger.error("Sphinx couldn't understand audio")
-    except sr.RequestError as e:
-        payload['error'] = "Sphinx error; {0}".format(e)
-        logger.error("Sphinx error; {0}".format(e))
+    except sr.RequestError as exp:
+        payload['error'] = "Sphinx error; {0}".format(exp)
+        logger.error("Sphinx error; {0}".format(exp))
 
     payload.update({'meta': meta})
     return payload
