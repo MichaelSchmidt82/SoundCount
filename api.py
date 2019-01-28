@@ -20,65 +20,63 @@ class SoundCount(Resource):
     """
 
     def post(self):
-        logger.info("POST Request received.")
+        """
+        Handles HTTP POST request given a form with a 'file.'  'file' represents
+        the user's audio submission.
 
-        # assume bad result, create temp file.
+        :file:      (WAV) waveform audio        Via HTTP POST form-data.
+        :returns:   dict()                      Meta-information of the audio.
+        """
+
+        logger.info("POST Request received.")
         payload = {'status': 'failure',
                    'count': 0,
                    'meta': {}}
 
-        # Parse the request into a dict() which contains the raw wav data.
         parse = reqparse.RequestParser()
         parse.add_argument('file', type=werkzeug.datastructures.FileStorage, location='files')
         args = parse.parse_args()
 
-        # Save the data as a temporary file
-        filename = str(uuid.uuid4())
+        tempfile = str(uuid.uuid4())
         try:
             audio_file = args['file']
-            audio_file.save(filename)
+            audio_file.save(tempfile)
         except AttributeError:
-                if audio_file is None:
-                    logger.error("Audio data not received")
-                    payload['meta']['error'] = 'audio data not received'
-                    payload['meta']['parameter'] = 'file'
-                    return payload
+            if audio_file is None:
+                logger.error('Audio data not received')
+                payload['meta']['error'] = 'audio data not received'
+                payload['meta']['parameter'] = 'file'
+                return payload
 
-        logger.info("Analyzing temp file: {0}".format(filename))
-        # Extract the words and perform an analysis.
+        logger.info('Analyzing temp file: {}'.format(tempfile))
+
         try:
-            words = utils.speech_rec(filename)
-            analysis = voice_analyzer(filename)
+            words = utils.speech_rec(tempfile)
+            analysis = voice_analyzer(tempfile)
         except:
-            logger.error("File does not appear to be a valid wav file")
+            logger.error('File does not appear to be a valid wav file')
 
-            os.remove(filename)
-            logger.debug("Temp file removed. Was {0}".format(filename))
+            os.remove(tempfile)
+            logger.debug('Temp file removed. Was {}'.format(tempfile))
             return payload
 
-        # Tag the words
         payload['meta']['text'] = utils.pos_tagger([words['meta']['text']])
-        payload['meta']['text'] = payload['meta']['text'][0]
-         
+
         payload['meta']['gender'] = analysis['gender']
         payload['meta']['age'] = analysis['age']
         payload['meta']['dialect'] = analysis['dialect']
 
-        # Count the words
-        for word in payload['meta']['text']:
-            payload['count'] += len(word)
+        payload['count'] = len(payload['meta']['text'])
 
-        duration = utils.duration(filename)
+        duration = utils.duration(tempfile)
         logger.info("Analysis completed")
 
-        # Check for errors
         if 'error' not in payload:
             payload['status'] = 'success'
             payload['meta']['duration'] = duration
 
-        # Remove temp file
-        os.remove(filename)
-        logger.debug("Temp file removed.  Was {0}".format(filename))
+        os.remove(tempfile)
+        logger.debug("Temp file removed.  Was {}".format(tempfile))
 
         return payload
 
