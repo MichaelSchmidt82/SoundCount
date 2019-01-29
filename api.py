@@ -1,13 +1,14 @@
 # imports
 import os
 import uuid
-import utils
-
 import werkzeug
-from utils import logger
 from flask import Flask, request
-from analyzer import voice_analyzer
 from flask_restful import Resource, Api, reqparse
+
+from utils import logger, duration, speech_rec, pos_tagger
+
+from analyzer import voice_analyzer
+
 
 
 # Instance of application
@@ -28,7 +29,8 @@ class SoundCount(Resource):
         :returns:   dict()                      Meta-information of the audio.
         """
 
-        logger.info("POST Request received.")
+        tempfile = str(uuid.uuid4())
+        logger.info("POST Request received. using temp file {}".format(tempfile))
         payload = {'status': 'failure',
                    'count': 0,
                    'meta': {}}
@@ -37,7 +39,6 @@ class SoundCount(Resource):
         parse.add_argument('file', type=werkzeug.datastructures.FileStorage, location='files')
         args = parse.parse_args()
 
-        tempfile = str(uuid.uuid4())
         try:
             audio_file = args['file']
             audio_file.save(tempfile)
@@ -45,38 +46,32 @@ class SoundCount(Resource):
             if audio_file is None:
                 logger.error('Audio data not received')
                 payload['meta']['error'] = 'audio data not received'
-                payload['meta']['parameter'] = 'file'
+                payload['meta']['parameter'] = '\'file\' not present'
                 return payload
 
         logger.info('Analyzing temp file: {}'.format(tempfile))
 
         try:
-            words = utils.speech_rec(tempfile)
-            analysis = voice_analyzer(tempfile)
+            payload['meta'].update(speech_rec(tempfile))
+            payload['meta'].update(voice_analyzer(tempfile))
         except:
-            logger.error('File does not appear to be a valid wav file')
+            logger.error('File {} does not appear to be a valid'.format(tempfile))
 
             os.remove(tempfile)
             logger.debug('Temp file removed. Was {}'.format(tempfile))
+            payload['meta']['error'] = 'file does not appear to be a valid'
+
             return payload
 
-        payload['meta']['text'] = utils.pos_tagger([words['meta']['text']])
+        payload['count'] = len("the quick brown fox jumps over the lazy dog".split())
+        payload['meta']['text'] = pos_tagger(["the quick brown fox jumps over the lazy dog".split()])
+        payload['meta']['duration'] = duration(tempfile)
 
-        payload['meta']['gender'] = analysis['gender']
-        payload['meta']['age'] = analysis['age']
-        payload['meta']['dialect'] = analysis['dialect']
-
-        payload['count'] = len(payload['meta']['text'])
-
-        duration = utils.duration(tempfile)
-        logger.info("Analysis completed")
-
-        if 'error' not in payload:
+        if 'error' not in payload['meta']:
             payload['status'] = 'success'
-            payload['meta']['duration'] = duration
 
         os.remove(tempfile)
-        logger.debug("Temp file removed.  Was {}".format(tempfile))
+        logger.info("Process completed, removed tempfile {}".format(tempfile))
 
         return payload
 
@@ -87,4 +82,4 @@ api = Api(app)
 api.add_resource(SoundCount, '/')
 if __name__ == '__main__':
     logger.debug('Starting flask app.')
-    app.run(host='0.0.0.0', debug=False)
+    app.run(host='0.0.0.0', debug=True)
