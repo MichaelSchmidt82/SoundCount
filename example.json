@@ -1,0 +1,19 @@
+{
+    "status": "success",
+    "count": 9,
+    "meta": {
+        "text": [["the", "DT"],
+            ["quick", "JJ"],
+            ["brown", "NN"],
+            ["fox", "NN"],
+            ["jumps", "VBZ"],
+            ["over", "IN"],
+            ["the", "DT"],
+            ["lazy", "JJ"],
+            ["dog", "NN"]],
+        "gender": "Male",
+        "age": "Adult",
+        "dialect": "European",
+        "duration": 5.120816326530612
+    }
+}
