@@ -1,14 +1,14 @@
 import os
+import sys
 import wave
-import nltk
 import logging
 import contextlib
-import environment as env
+
+import nltk
 import speech_recognition as sr
 
-from os import path
+import environment as env
 from recognizers import sphinx
-
 
 def duration(filename):
     """
@@ -23,13 +23,9 @@ def duration(filename):
         return frames / float(rate)     # return framerate
 
 
-# Speech recognizer, recognizes speech from a wav file and returns the text
-# Speech -> Text
-# Input:  a file name of a .wav file
-# Output: The recognized speec as text
 def speech_rec(filename):
 
-    audio_file = path.join(path.dirname(path.realpath(__file__)), filename)
+    audio_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), filename)
     # instantiate a speech recognizer object
     r = sr.Recognizer()
 
@@ -41,67 +37,28 @@ def speech_rec(filename):
     words = sphinx(r, audio)
     return words
 
-# Word Count, counts the word in a sentence
-# Input:  a sentence phrase
-# Output: the length of the sentence
-def word_count(phrase):
-    return len(phrase.split())
 
-
-# Part of Speech tagger, tags speech depending on the words in the sentence
-# Input:  a sentence of words
-# Ouptut: a list of tagged words
 def pos_tagger(words):
-    tag_words = []      # empty list of tagged words
+    tag_words = []
 
-    # append all of the words into the tagged words
     for word in words:
         tag_words.append(nltk.pos_tag(word))
 
-    # return the tagged words
-    return tag_words
+    return tag_words[0]
 
 
-# Attempt to set up a Python3 logger than will print custom messages
-# based on each message's logging level.
-# Overrides the default logger
-# Input:  the logger message, ex. warning, info, error
-# Output: returns the result
-class CustomFormatter(logging.Formatter):
-    """
-    Modify the way messages are displayed.
-    """
-    def __init__(self):
-        super().__init__(fmt="%(asctime)s: %(msg)s", datefmt=None, style='%')
 
-    def format(self, record):
-
-        # Remember the original format
-        format_orig = self._fmt
-
-        if record.levelno == logging.DEBUG:
-            self._fmt = "DEBUG: %(msg)s"
-
-        # Call the original formatter to do the grunt work
-        result = logging.Formatter.format(self, record)
-
-        # Restore the original format
-        self._fmt = format_orig
-
-        return result
-
-# Class for a Logger, Handles the logging for our application
 class Log():
 
     # initialization
     def __init__(self):
         # gets the logger from the sound count log
-        self.logger = logging.getLogger('sound_count_log')
+        self.logger = logging.getLogger('sound-count')
         # set the level of the degub message
         self.logger.setLevel(logging.DEBUG)
 
-        # ceate a custom formatter
-        self.formatter = CustomFormatter()
+        self.formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
+
 
         # stdout logging
         self.stdout_handler = logging.StreamHandler()
@@ -142,7 +99,7 @@ class Log():
 
     # checks the see if the size is too big, removes the log file if 512 Mb
     def check_size(self):
-        if path.getsize(env.app_vars['LOG_PATH']) > env.app_vars['LOG_MAXSIZE']:
+        if os.path.getsize(env.app_vars['LOG_PATH']) > env.app_vars['LOG_MAXSIZE']:
             os.remove(env.app_vars['LOG_PATH'])
 
 # instantiate a logger
