@@ -21,19 +21,19 @@ def voice_analyzer(filename):
     mel = np.mean(librosa.feature.melspectrogram(y, sr=sr).T, axis=0)
     contrast = np.mean(librosa.feature.spectral_contrast(S=stft, sr=sr).T, axis=0)
     tonnetz = np.mean(librosa.feature.tonnetz(y=librosa.effects.harmonic(y), sr=sr).T, axis=0)
-    chroma = np.mean(librosa.feature.chroma_stft(S=stft, sr=sr).T,axis=0)
+    chroma = np.mean(librosa.feature.chroma_stft(S=stft, sr=sr).T, axis=0)
 
     # create the features from the above
-    features = np.hstack([mfccs,chroma,mel,contrast,tonnetz])
+    features = np.hstack([mfccs, chroma, mel, contrast, tonnetz])
 
     # reshape the features matrix
     features = features.reshape(1, -1)
 
     # make a prediction from the features
     # print the predictions
-    info = dict()
-    info['gender'] = env.clffg.predict(features)[0]     #pred = env.clffg.predict(features)
-    info['age'] = env.clffa.predict(features)[0]        #pred = env.clffa.predict(features)
-    info['dialect'] = env.clffd.predict(features)[0]    #pred = env.clffd.predict(features)
-    logger.info("voice_analyzer completed task: {gender} {age} {dialect}".format(gender=info['gender'], age=info['age'], dialect=info['dialect']))
-    return info
+    meta = dict({})
+    meta['gender'] = env.clffg.predict(features)[0]     #pred = env.clffg.predict(features)
+    meta['age'] = env.clffa.predict(features)[0]        #pred = env.clffa.predict(features)
+    meta['dialect'] = env.clffd.predict(features)[0]    #pred = env.clffd.predict(features)
+    logger.info("Voice analyzer completed task: {gender} {age} {dialect}".format(gender=meta['gender'], age=meta['age'], dialect=meta['dialect']))
+    return meta
