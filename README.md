@@ -80,7 +80,7 @@ Then install python packages by:
 pip<3> install -r requirements.txt
 ```  
 
-Be sure to download the NLTK dataset: use `python<3> to bring up an interpreter:  
+Be sure to download the NLTK dataset: use `python<3>` to bring up an interpreter:  
 ```python
 >>> import nltk; nltk.download()
 ```
