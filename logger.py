@@ -28,11 +28,19 @@ import logging
 from environment import APP_VARS as config
 
 
+def check_size():
+    """
+    Remove log based on size (in bytes)
+    """
+
+    if os.path.getsize(config['LOG_PATH']) > config['LOG_MAXSIZE']:
+        os.remove(config['LOG_PATH'])
+
+
 class Log():
     """
     A class to manage logging activity
     """
-
 
     def __init__(self):
         """
@@ -54,7 +62,6 @@ class Log():
         self.logger.addHandler(self.stdout_handler)
         self.logger.addHandler(self.file_handler)
 
-
     def debug(self, message):
         """
         Custom DEBUG message
@@ -62,9 +69,8 @@ class Log():
         :returns:   None
         """
 
-        self.check_size()
+        check_size()
         self.logger.debug('DEBUG: %s', message)
-
 
     def info(self, message):
         """
@@ -73,10 +79,9 @@ class Log():
         :returns:   None
         """
 
-        self.check_size()
+        check_size()
         self.logger.info('INFO: %s', message)
 
-    # custom warning message
     def warning(self, message):
         """
         Custom WARNING message
@@ -84,10 +89,9 @@ class Log():
         :returns:   None
         """
 
-        self.check_size()
+        check_size()
         self.logger.info('WARNING: %s', message)
 
-    # custom error message
     def error(self, message):
         """
         Custom ERROR message
@@ -95,10 +99,9 @@ class Log():
         :returns:   None
         """
 
-        self.check_size()
+        check_size()
         self.logger.info('ERROR: %s', message)
 
-    # custom criticals message
     def critical(self, message):
         """
         Custom CRITICAL message
@@ -106,16 +109,8 @@ class Log():
         :returns:   None
         """
 
-        self.check_size()
+        check_size()
         self.logger.info('CRITICAL: %s', message)
 
-    # checks the see if the size is too big, removes the log file if 512 Mb
-    def check_size(self):
-        """
-        Remove log based on size (in bytes)
-        """
-
-        if os.path.getsize(config['LOG_PATH']) > config['LOG_MAXSIZE']:
-            os.remove(config['LOG_PATH'])
 
 LOGGER = Log()

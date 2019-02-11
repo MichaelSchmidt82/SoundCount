@@ -19,7 +19,7 @@ pocketsphinx==0.1.15
 py==1.5.2
 pytz==2018.3
 resampy==0.2.0
-scikit-learn==0.19.1
+scikit-learn==0.18.1
 scipy==1.0.0
 six==1.11.0
 sklearn==0.0
