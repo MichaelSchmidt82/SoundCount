@@ -5,6 +5,7 @@ import werkzeug
 from flask import Flask, request
 from flask_restful import Resource, Api, reqparse
 
+from environment import app_vars as config
 from utils import logger, duration, speech_rec, pos_tagger
 
 from analyzer import voice_analyzer
@@ -82,4 +83,4 @@ api = Api(app)
 api.add_resource(SoundCount, '/')
 if __name__ == '__main__':
     logger.debug('Starting flask app.')
-    app.run(host='0.0.0.0', debug=True)
+    app.run(host=config['HOST'], port=config['PORT'], debug=True)

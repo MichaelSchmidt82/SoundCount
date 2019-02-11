@@ -1,5 +1,29 @@
+"""
+MIT License
+
+Copyright (c) 2018 Michael Schmidt
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+
 import os
-import sys
+#import io
 import wave
 import logging
 import contextlib
@@ -7,107 +31,148 @@ import contextlib
 import nltk
 import speech_recognition as sr
 
-import environment as env
+from environment import APP_VARS as config
 from recognizers import sphinx
 
 def duration(filename):
     """
     Opens a wave file and finds the number of frames per rate
 
-    :filename:  a filename which is a .wav file
-    :returns: returns the framerate
+    :filename:      str()           A filename (relative to __main__)
+    :returns:       float()         Duration in seconds
     """
-    with contextlib.closing(wave.open(filename, 'r')) as f:
-        frames = f.getnframes()         # get frames
-        rate = f.getframerate()         # get rate
-        return frames / float(rate)     # return framerate
+
+    with contextlib.closing(wave.open(filename, 'r')) as data:
+        frames = data.getnframes()
+        rate = data.getframerate()
+        return frames / float(rate)
 
 
 def speech_rec(filename):
+    """
+    Create the recognition engine and perform speech-to-text
+    :filename:      str()       A filename (relative to __main__)
+    :returns:       list()      A list of words
+    """
 
+    # TODO: pass in engine as paramater (a.k.a sphinx)
+    # TODO: use io.BytesIO() as a buffer instead of a filename
+
+    # buff = BytesIO()
     audio_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), filename)
-    # instantiate a speech recognizer object
-    r = sr.Recognizer()
 
-    # try to open the audio file
+    s_rec = sr.Recognizer()
+
+    # with sr.AudioFile(buff) as source:
     with sr.AudioFile(audio_file) as source:
-        audio = r.record(source)
+        audio = s_rec.record(source)
 
-    # return the speech to text
-    words = sphinx(r, audio)
+    words = sphinx(s_rec, audio)
     return words
 
 
 def pos_tagger(words):
-    tag_words = []
+    """
+    Tag each word with associated POS.
+    :words:     list()          list of str(), element: word
+    :retruns    list[list()]    list() of list(), element [word, pos]
+    """
 
+    tag_words = []
     for word in words:
         tag_words.append(nltk.pos_tag(word))
 
     return tag_words[0]
 
 
-
 class Log():
+    """
+    A class to manage logging activity
+    """
 
-    # initialization
+
     def __init__(self):
-        # gets the logger from the sound count log
+        """
+        Create a handler for std_out and file stream for logging.Logger() emitters
+        """
+
         self.logger = logging.getLogger('sound-count')
-        # set the level of the degub message
+
         self.logger.setLevel(logging.DEBUG)
 
         self.formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
 
-
-        # stdout logging
         self.stdout_handler = logging.StreamHandler()
         self.stdout_handler.setFormatter(self.formatter)
 
-        # file handling
-        self.file_handler = logging.FileHandler(env.app_vars['LOG_PATH'])
+        self.file_handler = logging.FileHandler(config['LOG_PATH'])
         self.file_handler.setFormatter(self.formatter)
 
-        # add for handling for files and stdout
         self.logger.addHandler(self.stdout_handler)
         self.logger.addHandler(self.file_handler)
 
-    # custom debugger message
-    def debug(self, message):
-        self.check_size()
-        self.logger.debug("DEBUG: {0}".format(message))
 
-    # custom info message
-    def info(self, message):
+    def debug(self, message):
+        """
+        Custom DEBUG message
+        :message:   str()       message to log
+        :returns:   None
+        """
+
         self.check_size()
-        self.logger.info("INFO: {0}".format(message))
+        self.logger.debug('DEBUG: %s', message)
+
+
+    def info(self, message):
+        """
+        Custom INFO message
+        :message:   str()       message to log
+        :returns:   None
+        """
+
+        self.check_size()
+        self.logger.info('INFO: %s', message)
 
     # custom warning message
     def warning(self, message):
+        """
+        Custom WARNING message
+        :message:   str()       message to log
+        :returns:   None
+        """
+
         self.check_size()
-        self.logger.info("WARNING: {0}".format(message))
+        self.logger.info('WARNING: %s', message)
 
     # custom error message
     def error(self, message):
+        """
+        Custom ERROR message
+        :message:   str()       message to log
+        :returns:   None
+        """
+
         self.check_size()
-        self.logger.info("ERROR: {0}".format(message))
+        self.logger.info('ERROR: %s', message)
 
     # custom criticals message
     def critical(self, message):
+        """
+        Custom CRITICAL message
+        :message:   str()       message to log
+        :returns:   None
+        """
+
         self.check_size()
-        self.logger.info("CRITICAL: {0}".format(message))
+        self.logger.info('CRITICAL: %s', message)
 
     # checks the see if the size is too big, removes the log file if 512 Mb
     def check_size(self):
-        if os.path.getsize(env.app_vars['LOG_PATH']) > env.app_vars['LOG_MAXSIZE']:
-            os.remove(env.app_vars['LOG_PATH'])
+        """
+        Remove log based on size (in bytes)
+        """
 
-# instantiate a logger
-logger = Log()
+        if os.path.getsize(config['LOG_PATH']) > config['LOG_MAXSIZE']:
+            os.remove(config['LOG_PATH'])
 
-# TESTING THE LOGGER
-# logger.debug("This message")
-# logger.info("That message")
-# logger.warning("Bad message")
-# logger.error("uh oh message")
-# logger.critical("FFUUUUUU!")
+LOGGER = Log()
