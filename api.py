@@ -30,7 +30,7 @@ from flask_restful import Resource, Api, reqparse
 
 from environment import APP_VARS as config
 from utils import duration, speech_rec, pos_tagger
-from utils import LOGGER as logger
+from logger import LOGGER as log
 
 from analyzer import voice_analyzer
 
@@ -52,7 +52,7 @@ class SoundCount(Resource):
         """
 
         tempfile = str(uuid.uuid4())
-        logger.info("POST Request received. using temp file {}".format(tempfile))
+        log.info("POST Request received. using temp file {}".format(tempfile))
         payload = {'status': 'failure',
                    'count': 0,
                    'meta': {}}
@@ -66,21 +66,21 @@ class SoundCount(Resource):
             audio_file.save(tempfile)
         except AttributeError:
             if audio_file is None:
-                logger.error('Audio data not received')
+                log.error('Audio data not received')
                 payload['meta']['error'] = 'audio data not received'
                 payload['meta']['parameter'] = '\'file\' not present'
                 return payload
 
-        logger.info('Analyzing temp file: {}'.format(tempfile))
+        log.info('Analyzing temp file: {}'.format(tempfile))
 
         try:
             payload['meta'].update(speech_rec(tempfile))
             payload['meta'].update(voice_analyzer(tempfile))
         except:
-            logger.error('File {} does not appear to be a valid'.format(tempfile))
+            log.error('File {} does not appear to be a valid'.format(tempfile))
 
             os.remove(tempfile)
-            logger.debug('Temp file removed. Was {}'.format(tempfile))
+            log.debug('Temp file removed. Was {}'.format(tempfile))
             payload['meta']['error'] = 'file does not appear to be a valid'
 
             return payload
@@ -93,7 +93,7 @@ class SoundCount(Resource):
             payload['status'] = 'success'
 
         os.remove(tempfile)
-        logger.info("Process completed, removed tempfile {}".format(tempfile))
+        log.info("Process completed, removed tempfile {}".format(tempfile))
 
         return payload
 
@@ -102,5 +102,5 @@ API = Api(APP)
 
 API.add_resource(SoundCount, '/')
 if __name__ == '__main__':
-    logger.debug('Starting flask app.')
+    log.debug('Starting flask app.')
     APP.run(host=config['HOST'], port=config['PORT'], debug=config['APP_DEBUG'])

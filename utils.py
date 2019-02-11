@@ -32,7 +32,7 @@ import nltk
 import speech_recognition as sr
 
 from environment import APP_VARS as config
-from recognizers import sphinx
+import recognizers
 
 def duration(filename):
     """
@@ -67,7 +67,7 @@ def speech_rec(filename):
     with sr.AudioFile(audio_file) as source:
         audio = s_rec.record(source)
 
-    words = sphinx(s_rec, audio)
+    words = recognizers.sphinx(s_rec, audio)
     return words
 
 
@@ -83,96 +83,3 @@ def pos_tagger(words):
         tag_words.append(nltk.pos_tag(word))
 
     return tag_words[0]
-
-
-class Log():
-    """
-    A class to manage logging activity
-    """
-
-
-    def __init__(self):
-        """
-        Create a handler for std_out and file stream for logging.Logger() emitters
-        """
-
-        self.logger = logging.getLogger('sound-count')
-
-        self.logger.setLevel(logging.DEBUG)
-
-        self.formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
-
-        self.stdout_handler = logging.StreamHandler()
-        self.stdout_handler.setFormatter(self.formatter)
-
-        self.file_handler = logging.FileHandler(config['LOG_PATH'])
-        self.file_handler.setFormatter(self.formatter)
-
-        self.logger.addHandler(self.stdout_handler)
-        self.logger.addHandler(self.file_handler)
-
-
-    def debug(self, message):
-        """
-        Custom DEBUG message
-        :message:   str()       message to log
-        :returns:   None
-        """
-
-        self.check_size()
-        self.logger.debug('DEBUG: %s', message)
-
-
-    def info(self, message):
-        """
-        Custom INFO message
-        :message:   str()       message to log
-        :returns:   None
-        """
-
-        self.check_size()
-        self.logger.info('INFO: %s', message)
-
-    # custom warning message
-    def warning(self, message):
-        """
-        Custom WARNING message
-        :message:   str()       message to log
-        :returns:   None
-        """
-
-        self.check_size()
-        self.logger.info('WARNING: %s', message)
-
-    # custom error message
-    def error(self, message):
-        """
-        Custom ERROR message
-        :message:   str()       message to log
-        :returns:   None
-        """
-
-        self.check_size()
-        self.logger.info('ERROR: %s', message)
-
-    # custom criticals message
-    def critical(self, message):
-        """
-        Custom CRITICAL message
-        :message:   str()       message to log
-        :returns:   None
-        """
-
-        self.check_size()
-        self.logger.info('CRITICAL: %s', message)
-
-    # checks the see if the size is too big, removes the log file if 512 Mb
-    def check_size(self):
-        """
-        Remove log based on size (in bytes)
-        """
-
-        if os.path.getsize(config['LOG_PATH']) > config['LOG_MAXSIZE']:
-            os.remove(config['LOG_PATH'])
-
-LOGGER = Log()

@@ -85,5 +85,10 @@ Be sure to download the NLTK dataset: use `python<3> to bring up an interpreter:
 >>> import nltk; nltk.download()
 ```
 
+# Usage
+```bash
+python api.py
+```
+
 ### Misc.
   - Recommended: [Postman](https://www.getpostman.com/)

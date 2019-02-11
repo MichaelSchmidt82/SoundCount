@@ -24,7 +24,7 @@ SOFTWARE.
 
 import numpy as np
 import librosa
-from utils import LOGGER as logger
+from logger import LOGGER as log
 from environment import CLFFG as gender_model
 from environment import CLFFA as age_model
 from environment import CLFFD as dialect_model
@@ -54,7 +54,7 @@ def voice_analyzer(filename):
     meta['age'] = age_model.predict(features)[0]
     meta['dialect'] = dialect_model.predict(features)[0]
 
-    logger.info('Voice analyzer completed task: {g} {a} {d}'.format(
+    log.info('Voice analyzer completed task: {g} {a} {d}'.format(
         g=meta['gender'],
         a=meta['age'],
         d=meta['dialect']))

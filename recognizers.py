@@ -24,8 +24,8 @@ SOFTWARE.
 
 import speech_recognition as sp_rec
 
-from utils import LOGGER as log
 from environment import CREDS as creds
+from logger import LOGGER as log
 
 # Sphinx Recognizer, Free to use but only decent at recognizing
 def sphinx(rec, audio):
