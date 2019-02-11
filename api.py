@@ -1,30 +1,51 @@
-# imports
+"""
+MIT License
+
+Copyright (c) 2018 Michael Schmidt
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+
 import os
 import uuid
 import werkzeug
-from flask import Flask, request
+from flask import Flask
 from flask_restful import Resource, Api, reqparse
 
-from environment import app_vars as config
-from utils import logger, duration, speech_rec, pos_tagger
+from environment import APP_VARS as config
+from utils import duration, speech_rec, pos_tagger
+from utils import LOGGER as logger
 
 from analyzer import voice_analyzer
 
 
-
-# Instance of application
 class SoundCount(Resource):
 
     """
     An instance of the SoundCount app
-    POST: receive a WAV file to process.
-    file: the file field.
+
+    :HTTP POST:   receive a WAV file to process.
     """
 
     def post(self):
         """
-        Handles HTTP POST request given a form with a 'file.'  'file' represents
-        the user's audio submission.
+        HTTP POST.   Form with a 'file' field.
 
         :file:      (WAV) waveform audio        Via HTTP POST form-data.
         :returns:   dict()                      Meta-information of the audio.
@@ -64,9 +85,9 @@ class SoundCount(Resource):
 
             return payload
 
-        payload['count'] = len("the quick brown fox jumps over the lazy dog".split())
-        payload['meta']['text'] = pos_tagger(["the quick brown fox jumps over the lazy dog".split()])
+        payload['meta']['text'] = pos_tagger([payload['meta']['text']])
         payload['meta']['duration'] = duration(tempfile)
+        payload['count'] = len(payload['meta']['text'])
 
         if 'error' not in payload['meta']:
             payload['status'] = 'success'
@@ -76,11 +97,10 @@ class SoundCount(Resource):
 
         return payload
 
-# Create the app and resource (root)
-app = Flask(__name__)
-api = Api(app)
+APP = Flask(__name__)
+API = Api(APP)
 
-api.add_resource(SoundCount, '/')
+API.add_resource(SoundCount, '/')
 if __name__ == '__main__':
     logger.debug('Starting flask app.')
-    app.run(host=config['HOST'], port=config['PORT'], debug=True)
+    APP.run(host=config['HOST'], port=config['PORT'], debug=config['APP_DEBUG'])
