@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
+import os
 import io
 import time
 import threading
@@ -118,10 +119,13 @@ def create_transcript(sid, adult_audio, child_audio):
                                                          text=child_data[0]['CONTENT']))
             child_data.pop(0)
 
-with open('segment1.mp4', 'rb') as dummy_audio:
-    adult = io.BytesIO(dummy_audio.read())
 
-with open('segment1.mp4', 'rb') as dummy_audio:
-    child = io.BytesIO(dummy_audio.read())
+if __name__ == '__main__':
 
-create_transcript('sid', adult, child)
+    with open(os.path.join('..', 'media', 'segment1.mp4'), 'rb') as dummy_audio:
+        adult = io.BytesIO(dummy_audio.read())
+
+    with open(os.path.join('..', 'media', 'segment1.mp4'), 'rb') as dummy_audio:
+        child = io.BytesIO(dummy_audio.read())
+
+    create_transcript('sid', adult, child)
