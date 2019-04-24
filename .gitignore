@@ -7,6 +7,9 @@ __pycache__/
 # logs
 logs/*.log
 
+# media
+media/*
+
 # agent binaries, objects:
 agent/WpfApp1/bin/*
 agent/WpfApp1/obj/*
