@@ -5,7 +5,7 @@
 __pycache__/
 
 # logs
-logs/*.log
+app/logs/*.log
 
 # media
 media/*
