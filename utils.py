@@ -23,15 +23,12 @@ SOFTWARE.
 """
 
 import os
-#import io
 import wave
-import logging
 import contextlib
 
 import nltk
 import speech_recognition as sr
 
-from environment import APP_VARS as config
 import recognizers
 
 def duration(filename):
