@@ -49,7 +49,7 @@ CREDS = {
     'IBM_USERNAME': '',
     'IBM_PASSWORD': ''}
 
-# grab the pickel'd libraries for the recognizer
+# grab the pickled for the recognizer
 CLFFG = joblib.load(os.path.join('models', 'cfl_gender.pkl'))
 CLFFA = joblib.load(os.path.join('models', 'cfl_age.pkl'))
 CLFFD = joblib.load(os.path.join('models', 'cfl_dialect.pkl'))

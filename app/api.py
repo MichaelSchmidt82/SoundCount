@@ -1,7 +1,7 @@
 """
 MIT License
 
-Copyright (c) 2018 Michael Schmidt
+Copyright (c) 2018-2019 Michael Schmidt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -29,10 +29,9 @@ from flask import Flask
 from flask_restful import Resource, Api, reqparse
 
 from environment import APP_VARS as config
-from utils import duration, speech_rec, pos_tagger
-from logger import LOGGER as log
+from logger import LOGGER
 
-from analyzer import voice_analyzer
+from analyzer import VoiceAnalyzer
 
 
 class SoundCount(Resource):
@@ -42,6 +41,13 @@ class SoundCount(Resource):
 
     :HTTP POST:   receive a WAV file to process.
     """
+    def __init__(self):
+
+        self.log = None
+        if config['APP_DEBUG']:
+            self.log = LOGGER
+
+        self.analyzer = VoiceAnalyzer()
 
     def post(self):
         """
@@ -51,49 +57,61 @@ class SoundCount(Resource):
         :returns:   dict()                      Meta-information of the audio.
         """
 
+        payload = {
+            'status': 'failure',
+            'count': 0,
+            'meta': dict()
+        }
         tempfile = str(uuid.uuid4())
-        log.info("POST Request received. using temp file {}".format(tempfile))
-        payload = {'status': 'failure',
-                   'count': 0,
-                   'meta': {}}
+        if self.log:
+            self.log.info("POST Request received. using temp file {}".format(tempfile))
 
         parse = reqparse.RequestParser()
-        parse.add_argument('file', type=werkzeug.datastructures.FileStorage, location='files')
+        parse.add_argument('audio', type=werkzeug.datastructures.FileStorage, location='files')
         args = parse.parse_args()
 
         try:
-            audio_file = args['file']
+            audio_file = args['audio']
             audio_file.save(tempfile)
         except AttributeError:
             if audio_file is None:
-                log.error('Audio data not received')
+                if self.log:
+                    self.log.error('Audio data not received')
                 payload['meta']['error'] = 'audio data not received'
                 payload['meta']['parameter'] = '\'file\' not present'
                 return payload
 
-        log.info('Analyzing temp file: {}'.format(tempfile))
+        if self.log:
+            self.log.info('Analyzing temp file: {}'.format(tempfile))
 
         try:
-            payload['meta'].update(speech_rec(tempfile))
-            payload['meta'].update(voice_analyzer(tempfile))
+            payload['meta'].update(self.analyzer.analyze(tempfile))
+            payload['meta'].update(self.analyzer.transcribe(tempfile))
+            payload['count'] = len(payload['meta']['text'])
+            payload['meta']['text'] = self.analyzer.tag([payload['meta']['text']])
+            payload['meta']['duration'] = self.analyzer.duration(tempfile)
+
+
         except:
-            log.error('File {} does not appear to be a valid'.format(tempfile))
+            if self.log:
+                self.log.error('File {} does not appear to be a valid'.format(tempfile))
 
             os.remove(tempfile)
-            log.debug('Temp file removed. Was {}'.format(tempfile))
+            if self.log:
+                self.log.debug('Temp file removed. Was {}'.format(tempfile))
+
             payload['meta']['error'] = 'file does not appear to be a valid'
 
             return payload
 
-        payload['meta']['text'] = pos_tagger([payload['meta']['text']])
-        payload['meta']['duration'] = duration(tempfile)
         payload['count'] = len(payload['meta']['text'])
 
         if 'error' not in payload['meta']:
             payload['status'] = 'success'
 
         os.remove(tempfile)
-        log.info("Process completed, removed tempfile {}".format(tempfile))
+        if self.log:
+            self.log.info("Process completed, removed tempfile {}".format(tempfile))
 
         return payload
 
@@ -102,5 +120,5 @@ API = Api(APP)
 
 API.add_resource(SoundCount, '/')
 if __name__ == '__main__':
-    log.debug('Starting flask app.')
+    LOGGER.debug('Starting flask app.')
     APP.run(host=config['HOST'], port=config['PORT'], debug=config['APP_DEBUG'])
