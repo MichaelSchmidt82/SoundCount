@@ -90,10 +90,9 @@ class SoundCount(Resource):
             payload['count'] = len(payload['meta']['text'])
             payload['meta']['text'] = self.analyzer.tag([payload['meta']['text']])
             payload['meta']['duration'] = self.analyzer.duration(tempfile)
-
-
-        except:
+        except Exception as exc:
             if self.log:
+                print(exc)
                 self.log.error('File {} does not appear to be a valid'.format(tempfile))
 
             os.remove(tempfile)
@@ -107,7 +106,7 @@ class SoundCount(Resource):
         payload['count'] = len(payload['meta']['text'])
 
         if 'error' not in payload['meta']:
-            payload['status'] = 'success'
+            payload['status'] = 'pass'
 
         os.remove(tempfile)
         if self.log:

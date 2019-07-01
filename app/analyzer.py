@@ -68,7 +68,7 @@ class VoiceAnalyzer:
         with sr.AudioFile(audio_file) as source:
             audio = s_rec.record(source)
 
-        words = recognizers.sphinx(s_rec, audio)
+        words = recognizers.google_sound_cloud(s_rec, audio)
         return words
 
     def tag(self, words):
