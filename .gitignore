@@ -13,3 +13,6 @@ media/*
 # agent binaries, objects:
 agent/WpfApp1/bin/*
 agent/WpfApp1/obj/*
+
+# creds
+app/google-credentials.json
