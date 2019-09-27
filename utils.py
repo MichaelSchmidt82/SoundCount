@@ -75,7 +75,7 @@ def pos_tagger(words):
     """
     Tag each word with associated POS.
     :words:     list()          list of str(), element: word
-    :retruns    list[list()]    list() of list(), element [word, pos]
+    :retruns    list[list()]    list([word, pos])
     """
 
     tag_words = []

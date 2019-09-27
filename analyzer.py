@@ -35,7 +35,7 @@ def voice_analyzer(filename):
     Perform analysis on voice using pickled model.
     See: https://github.com/lreynolds18/Voice-Analyzer
     """
-
+    meta = {}
     y, sr = librosa.load(filename, sr=22050)
 
     stft = np.abs(librosa.stft(y))
@@ -46,10 +46,8 @@ def voice_analyzer(filename):
     chroma = np.mean(librosa.feature.chroma_stft(S=stft, sr=sr).T, axis=0)
 
     features = np.hstack([mfccs, chroma, mel, contrast, tonnetz])
-
     features = features.reshape(1, -1)
 
-    meta = dict({})
     meta['gender'] = gender_model.predict(features)[0]
     meta['age'] = age_model.predict(features)[0]
     meta['dialect'] = dialect_model.predict(features)[0]

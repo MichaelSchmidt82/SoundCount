@@ -53,9 +53,11 @@ class SoundCount(Resource):
 
         tempfile = str(uuid.uuid4())
         log.info("POST Request received. using temp file {}".format(tempfile))
-        payload = {'status': 'failure',
-                   'count': 0,
-                   'meta': {}}
+        payload = {
+            'status': 'failure',
+            'count': 0,
+            'meta': {}
+        }
 
         parse = reqparse.RequestParser()
         parse.add_argument('file', type=werkzeug.datastructures.FileStorage, location='files')
@@ -76,8 +78,9 @@ class SoundCount(Resource):
         try:
             payload['meta'].update(speech_rec(tempfile))
             payload['meta'].update(voice_analyzer(tempfile))
-        except:
+        except Exception as exc:
             log.error('File {} does not appear to be a valid'.format(tempfile))
+            log.debug(exc)
 
             os.remove(tempfile)
             log.debug('Temp file removed. Was {}'.format(tempfile))
